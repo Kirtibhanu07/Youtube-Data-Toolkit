@@ -2,13 +2,12 @@
 // GLOBAL CONSTANTS
 // ============================================================
 
-
 var METADATA_HEADERS = ["Title", "Duration", "Date(GMT)", "Day(GMT)", "Time(GMT)", "Date(Local)", "Day(Local)", "Time(Local)", "Country", "Views", "Likes", "Comments", "Description"];
 
 var PLAYLIST_HEADERS = ["Playlist Name", "Video Name", "URL", "Published Date (UTC)", "Status"];
-//                                                                                      ^^^^^^^^ new column we added
 
 var PLAYLIST_INDEX_HEADERS = ["NAME", "PLAYLIST URL"];
+
 // ============================================================
 // API DOCUMENTATION MAP
 // Each entry: [Header Name, API Object, API Property Path, API Method, Notes]
