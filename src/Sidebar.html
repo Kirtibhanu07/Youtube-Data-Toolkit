@@ -21,6 +21,7 @@
 <div class="actions"><button id="retry" class="plain" disabled>Retry unavailable</button><button id="refresh" class="plain" disabled>Refresh metadata</button><button id="cancel" class="plain" disabled>Cancel job</button></div>
 <a id="output" class="hidden" rel="noopener">Open output sheet ↗</a><p class="hint">Progress is saved after each batch. Pause or close this sidebar and resume later.</p>
 </section><p class="foot">YouTube metadata is a snapshot. Missing counts stay blank. API attempts include retries and are not your remaining account quota. Refresh or remove stored metadata within applicable YouTube retention limits. No video downloads.</p></main>
+<!--INITIAL_MODE-->
 <!--PREVIEW-->
 <script>
 'use strict';let job=null,busy=false,auto=false;
@@ -42,11 +43,13 @@ async function action(fn){busy=true;$('error').classList.add('hidden');controls(
 $('mode').addEventListener('change',()=>{const mode=$('mode').value;$('sourceLabel').textContent=mode==='videos'?'Video links, one per line':mode==='playlist'?'Playlist URL or ID':'Channel handle, URL or ID';$('selection').classList.toggle('hidden',mode!=='videos');$('shortsControl').classList.toggle('hidden',mode==='playlists');$('dateHint').textContent=mode==='playlists'?'Optional. Filters playlist creation dates in UTC.':'Optional. Filters video publication dates, including the full end date.';});
 $('selection').onclick=()=>action(async()=>{$('source').value=await call('toolkitSelection');});
 $('start').onclick=()=>action(()=>call('toolkitStart',{mode:$('mode').value,source:$('source').value,startDate:$('startDate').value,endDate:$('endDate').value,excludeShorts:$('excludeShorts').checked}));
-$('reload').onclick=()=>action(()=>call('toolkitStatus'));
+$('reload').onclick=()=>if(window.YT_INITIAL_MODE){$('mode').value=window.YT_INITIAL_MODE;$('mode').dispatchEvent(new Event('change'));}
+action(()=>call('toolkitStatus'));
 $('run').onclick=async()=>{auto=true;controls();while(auto&&job?.id&&!terminal(job.state)){await action(()=>call('toolkitRun',job.id));if(job.state==='PAUSED')auto=false;}auto=false;controls();};
 $('pause').onclick=()=>{auto=false;$('message').textContent='Pausing after the current batch finishes.';controls();};
 $('cancel').onclick=()=>action(()=>call('toolkitCancel',job.id));
 $('retry').onclick=()=>action(()=>call('toolkitRetry',job.id,false));
 $('refresh').onclick=()=>action(()=>call('toolkitRetry',job.id,true));
+if(window.YT_INITIAL_MODE){$('mode').value=window.YT_INITIAL_MODE;$('mode').dispatchEvent(new Event('change'));}
 action(()=>call('toolkitStatus'));
 </script></body></html>

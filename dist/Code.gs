@@ -114,11 +114,30 @@ var YTCore = (function () {
 var YT_HEADERS = ['Input','Video ID','Status','Title','Channel','Channel ID','Published UTC','Published local','Duration seconds','Duration','Views','Likes','Comments','Broadcast status','Scheduled start UTC','Actual start UTC','Country code','Description','Retrieved UTC','Error'];
 var YT_TERMINAL = ['COMPLETE','COMPLETE_WITH_ISSUES','CANCELLED'];
 function onOpen() {
-  SpreadsheetApp.getUi().createMenu('YouTube Toolkit')
-    .addItem('Open workspace', 'openToolkit').addToUi();
+  SpreadsheetApp.getUi().createMenu('YouTube Data Toolkit')
+    .addItem('Get metadata from video URLs', 'fetchYoutubeDetails')
+    .addItem('Retry unavailable videos', 'retryFailedRows')
+    .addSeparator()
+    .addItem('Import playlist videos', 'importFromPlaylist')
+    .addItem('Import channel uploads', 'importFromChannel')
+    .addItem('Index channel playlists', 'getAllPlaylistsFromChannel')
+    .addSeparator()
+    .addItem('Open workspace / resume collection', 'openToolkit').addToUi();
 }
-function openToolkit() {
-  SpreadsheetApp.getUi().showSidebar(HtmlService.createHtmlOutputFromFile('Sidebar').setTitle('YouTube Toolkit'));
+function openToolkit() { openToolkitMode_(''); }
+function fetchYoutubeDetails() { openToolkitMode_('videos'); }
+function importFromPlaylist() { openToolkitMode_('playlist'); }
+function importFromChannel() { openToolkitMode_('channel'); }
+function getAllPlaylistsFromChannel() { openToolkitMode_('playlists'); }
+function retryFailedRows() {
+  try { var j=ytLoad_();if(!j)throw new Error('Start a collection first.');toolkitRetry(j.id,false); }
+  catch(e){SpreadsheetApp.getUi().alert(String(e.message||e));}
+  openToolkit();
+}
+function openToolkitMode_(mode) {
+  var html=HtmlService.createHtmlOutputFromFile('Sidebar').getContent();
+  html=html.replace('<!--INITIAL_MODE-->','<script>window.YT_INITIAL_MODE='+JSON.stringify(mode)+';</script>');
+  SpreadsheetApp.getUi().showSidebar(HtmlService.createHtmlOutput(html).setTitle('YouTube Data Toolkit'));
 }
 function ytKey_() { return 'youtube.toolkit.v2.' + SpreadsheetApp.getActiveSpreadsheet().getId(); }
 function ytLoad_() { var s=PropertiesService.getUserProperties().getProperty(ytKey_());return s?JSON.parse(s):null; }

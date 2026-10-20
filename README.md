@@ -2,6 +2,10 @@
 
 A Google Sheets sidebar for collecting YouTube video metadata, playlist videos, channel uploads and a channel's playlist index. Jobs persist between sidebar sessions and write into new output tabs so source cells remain unchanged.
 
+## Original menu workflows
+
+The upgraded script keeps direct menu entries for video metadata, retrying unavailable videos, importing playlists, importing channel uploads and indexing channel playlists. Each entry opens the relevant collection form inside Google Sheets. Resume is available from the same menu.
+
 ## What changed
 
 - One canonical source/build replaces the ambiguity between two older script versions.
@@ -23,7 +27,7 @@ A Google Sheets sidebar for collecting YouTube video metadata, playlist videos, 
 3. Add an HTML file named **Sidebar**, then paste `dist/Sidebar.html`.
 4. In Project Settings enable **Show appsscript.json manifest file in editor**. Replace its content with `dist/appsscript.json`.
 5. Under Services add **YouTube Data API v3**. If using a standard Cloud project, enable YouTube Data API v3 in that project too.
-6. Save and reload the spreadsheet. Open **YouTube Toolkit > Open workspace**.
+6. Save and reload the spreadsheet. Open **YouTube Data Toolkit > Open workspace / resume collection**.
 7. Complete Google's authorization screen yourself. The manifest requests access to the current spreadsheet, read-only YouTube data and the spreadsheet sidebar. No API key is stored in the code.
 8. Paste links, select an import type and date range, then choose **Create collection** and **Run collection**.
 
@@ -62,7 +66,7 @@ node scripts/preview.cjs
 
 `src/Core.js` contains pure parsing, validation and batching. `src/Code.js` adapts those functions to Apps Script. `src/Sidebar.html` is the UI. `test/harness.cjs` models Apps Script services for offline tests.
 
-The current suite contains 28 tests. The deterministic offline benchmark processes 1,000 mock video inputs using 20 video-list and 20 channel-list attempts, compared with 1,000 video-list calls for one-video-at-a-time retrieval. The **98% video-list call reduction is a mock scenario against an unbatched baseline**, not a measured improvement over the already-batched older `toolkit.js`. It is not a live API speed, quota or business-impact benchmark. See `docs/benchmark.json` and `docs/VALIDATION.md`.
+The current suite contains 30 tests. The deterministic offline benchmark processes 1,000 mock video inputs using 20 video-list and 20 channel-list attempts, compared with 1,000 video-list calls for one-video-at-a-time retrieval. The **98% video-list call reduction is a mock scenario against an unbatched baseline**, not a measured improvement over the already-batched older `toolkit.js`. It is not a live API speed, quota or business-impact benchmark. See `docs/benchmark.json` and `docs/VALIDATION.md`.
 
 The standalone preview uses clearly labelled sample data. It is not an authenticated Apps Script deployment. Live account authorization, API response differences and real Sheets execution require the installation acceptance checks in the validation guide.
 
