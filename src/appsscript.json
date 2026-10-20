@@ -1,0 +1,7 @@
+{
+  "timeZone": "Asia/Kolkata",
+  "dependencies": {"enabledAdvancedServices": [{"userSymbol": "YouTube", "version": "v3", "serviceId": "youtube"}]},
+  "exceptionLogging": "STACKDRIVER",
+  "runtimeVersion": "V8",
+  "oauthScopes": ["https://www.googleapis.com/auth/spreadsheets.currentonly", "https://www.googleapis.com/auth/youtube.readonly", "https://www.googleapis.com/auth/script.container.ui"]
+}

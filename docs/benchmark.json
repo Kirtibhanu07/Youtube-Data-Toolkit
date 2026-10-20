@@ -1,0 +1,35 @@
+{
+  "kind": "Offline deterministic service mocks, not a live YouTube benchmark",
+  "cases": [
+    {
+      "inputRows": 50,
+      "successfulRows": 50,
+      "videoListAttempts": 1,
+      "channelListAttempts": 1,
+      "totalListAttempts": 2,
+      "perVideoBaselineVideoListAttempts": 50,
+      "videoListCallReductionPercent": 98,
+      "state": "COMPLETE"
+    },
+    {
+      "inputRows": 500,
+      "successfulRows": 500,
+      "videoListAttempts": 10,
+      "channelListAttempts": 10,
+      "totalListAttempts": 20,
+      "perVideoBaselineVideoListAttempts": 500,
+      "videoListCallReductionPercent": 98,
+      "state": "COMPLETE"
+    },
+    {
+      "inputRows": 1000,
+      "successfulRows": 1000,
+      "videoListAttempts": 20,
+      "channelListAttempts": 20,
+      "totalListAttempts": 40,
+      "perVideoBaselineVideoListAttempts": 1000,
+      "videoListCallReductionPercent": 98,
+      "state": "COMPLETE"
+    }
+  ]
+}

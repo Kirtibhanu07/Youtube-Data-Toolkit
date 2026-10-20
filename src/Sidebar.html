@@ -1,0 +1,55 @@
+<!doctype html>
+<html><head><base target="_top"><meta name="viewport" content="width=device-width,initial-scale=1"><style>
+:root{--ink:#163a42;--muted:#60777b;--line:#dce6e4;--accent:#17685e;--bg:#f5f8f7}*{box-sizing:border-box}body{margin:0;background:var(--bg);font:13px/1.5 -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:var(--ink)}header{padding:24px 18px;background:var(--ink);color:white}header small{font-size:10px;letter-spacing:2px;color:#9dd8c4}h1{font-size:25px;line-height:1.2;margin:9px 0}header p{margin:0;color:#c6dcdb;font-size:12px}main{padding:16px;max-width:620px;margin:auto}.card{background:white;border:1px solid var(--line);border-radius:14px;padding:16px;margin-bottom:14px}h2{font-size:15px;margin:0 0 12px}.step{display:inline-grid;place-items:center;width:24px;height:24px;border-radius:8px;background:#e7f3ee;margin-right:7px;font-size:12px}label{display:block;font-weight:600;margin:12px 0 5px}textarea,select,input{width:100%;font:inherit;border:1px solid #b9ccc8;border-radius:8px;padding:10px;background:white;color:var(--ink)}textarea{resize:vertical;min-height:115px}input[type=checkbox]{width:auto}.dates{display:flex;gap:8px}.dates>div{min-width:0;flex:1}button{font:inherit;font-weight:600;border:0;border-radius:8px;padding:10px 12px;background:var(--accent);color:white;cursor:pointer}button:disabled{opacity:.5;cursor:default}.secondary{background:#edf4f1;color:var(--ink);border:1px solid var(--line)}.plain{background:transparent;color:var(--muted);padding:7px 0}.full{width:100%;margin-top:12px}.actions{display:flex;gap:7px;flex-wrap:wrap;margin-top:12px}.hint{font-size:11px;color:var(--muted);margin:7px 0}.badge{display:inline-block;border-radius:6px;background:#e7f3ee;color:#175647;padding:4px 8px;font-size:10px;font-weight:700;letter-spacing:.6px}.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:14px 0}.stat{background:var(--bg);padding:10px 5px;border-radius:8px;text-align:center}.stat strong{display:block;font-size:21px}.stat span{font-size:10px;color:var(--muted)}progress{width:100%;height:7px;accent-color:var(--accent)}#message{margin:10px 0;overflow-wrap:anywhere}#error{color:#9c302a;background:#fff1ed;border-radius:8px;padding:10px;white-space:pre-wrap}a{color:var(--accent);font-weight:600}.foot{font-size:10px;color:var(--muted);padding:2px 5px 15px}.hidden{display:none!important}#previewBanner{background:#fff1cf;padding:8px 16px;font-size:11px;text-align:center}.running{animation:pulse 1.5s infinite}@keyframes pulse{50%{opacity:.6}}:focus-visible{outline:3px solid #caa249;outline-offset:2px}
+</style></head><body>
+<div id="previewBanner" class="hidden">Interface preview · sample data · no API requests</div>
+<header><small>YOUTUBE DATA TOOLKIT / 02</small><h1>From links<br>to useful data.</h1><p>A focused collection workspace for Google Sheets.</p></header>
+<main><div id="error" role="alert" class="hidden"></div>
+<section class="card"><h2><span class="step">1</span> Choose your source</h2>
+<label for="mode">Import type</label><select id="mode"><option value="videos">Video links or IDs</option><option value="playlist">Videos from a playlist</option><option value="channel">Uploads from a channel</option><option value="playlists">Channel playlist index</option></select>
+<label for="source" id="sourceLabel">Video links, one per line</label><textarea id="source" placeholder="https://www.youtube.com/watch?v=..."></textarea>
+<button id="selection" class="plain" type="button">Use selected cells</button>
+<div class="dates"><div><label for="startDate">From UTC</label><input id="startDate" type="date"></div><div><label for="endDate">Through UTC</label><input id="endDate" type="date"></div></div>
+<p class="hint" id="dateHint">Optional. Filters video publication dates, including the full end date.</p>
+<div id="shortsControl"><label><input id="excludeShorts" type="checkbox" checked> Exclude Shorts and other videos up to 3 minutes</label><p class="hint">Keeps only videos longer than 3 minutes. Also excludes short regular videos, live/upcoming broadcasts and unknown durations. YouTube does not expose a reliable Shorts flag.</p></div>
+<button id="start" class="full">Create collection</button><p class="hint">Creates a new output tab. Your source cells stay untouched. Maximum 5,000 rows.</p>
+</section>
+<section class="card" aria-live="polite"><h2><span class="step">2</span> Collection progress</h2><span id="badge" class="badge">READY WHEN YOU ARE</span>
+<div class="stats"><div class="stat"><strong id="total">0</strong><span>COLLECTED</span></div><div class="stat"><strong id="ok">0</strong><span>READY ROWS</span></div><div class="stat"><strong id="requests">0</strong><span>API ATTEMPTS</span></div></div>
+<progress id="progress" value="0" max="1" aria-label="Rows processed"></progress><p id="message">Start a collection or reload an existing job.</p><p id="details" class="hint"></p>
+<div class="actions"><button id="run" disabled>Run collection</button><button id="pause" class="secondary" disabled>Pause</button><button id="reload" class="secondary">Reload</button></div>
+<div class="actions"><button id="retry" class="plain" disabled>Retry unavailable</button><button id="refresh" class="plain" disabled>Refresh metadata</button><button id="cancel" class="plain" disabled>Cancel job</button></div>
+<a id="output" class="hidden" rel="noopener">Open output sheet ↗</a><p class="hint">Progress is saved after each batch. Pause or close this sidebar and resume later.</p>
+</section><p class="foot">YouTube metadata is a snapshot. Missing counts stay blank. API attempts include retries and are not your remaining account quota. Refresh or remove stored metadata within applicable YouTube retention limits. No video downloads.</p></main>
+<!--INITIAL_MODE-->
+<!--PREVIEW-->
+<script>
+'use strict';let job=null,busy=false,auto=false;
+const $=id=>document.getElementById(id),terminal=s=>['COMPLETE','COMPLETE_WITH_ISSUES','CANCELLED'].includes(s);
+function error(e){$('error').textContent=e.message||String(e);$('error').classList.remove('hidden');auto=false;controls();}
+function call(name,...args){return new Promise((resolve,reject)=>google.script.run.withSuccessHandler(resolve).withFailureHandler(reject)[name](...args));}
+function controls(){
+ $('start').disabled=busy||!!(job&&job.id&&!terminal(job.state));$('run').disabled=busy||!job?.id||terminal(job.state);
+ $('reload').disabled=busy;$('pause').disabled=!auto;$('cancel').disabled=busy||!job?.id||terminal(job.state);
+ ['retry','refresh'].forEach(id=>$(id).disabled=busy||!job?.id||!terminal(job.state)||job.mode==='playlists');
+ $('badge').classList.toggle('running',busy);
+}
+function render(next){job=next;const c=job.counts||{},done=(c.OK||0)+(c.PLAYLIST||0)+(c.INVALID||0)+(c.UNAVAILABLE||0)+(c.FILTERED||0);
+ $('badge').textContent=job.state.replaceAll('_',' ');$('total').textContent=job.total||0;$('ok').textContent=(c.OK||0)+(c.PLAYLIST||0);$('requests').textContent=job.apiAttempts||0;
+ $('progress').max=Math.max(1,job.total||0);$('progress').value=done;$('message').textContent=job.message;
+ $('details').textContent=job.id?`${c.PENDING||0} pending · ${c.UNAVAILABLE||0} unavailable · ${c.INVALID||0} invalid · ${job.filtered||0} filtered during listing · ${job.duplicates||0} duplicates skipped · ${job.excludedShort||0} short videos skipped · ${job.unverifiedDuration||0} unverified durations skipped`:'';
+ $('output').classList.toggle('hidden',!job.sheetUrl);if(job.sheetUrl)$('output').href=job.sheetUrl;controls();}
+async function action(fn){busy=true;$('error').classList.add('hidden');controls();try{const s=await fn();if(s)render(s);}catch(e){error(e);}finally{busy=false;controls();}}
+$('mode').addEventListener('change',()=>{const mode=$('mode').value;$('sourceLabel').textContent=mode==='videos'?'Video links, one per line':mode==='playlist'?'Playlist URL or ID':'Channel handle, URL or ID';$('selection').classList.toggle('hidden',mode!=='videos');$('shortsControl').classList.toggle('hidden',mode==='playlists');$('dateHint').textContent=mode==='playlists'?'Optional. Filters playlist creation dates in UTC.':'Optional. Filters video publication dates, including the full end date.';});
+$('selection').onclick=()=>action(async()=>{$('source').value=await call('toolkitSelection');});
+$('start').onclick=()=>action(()=>call('toolkitStart',{mode:$('mode').value,source:$('source').value,startDate:$('startDate').value,endDate:$('endDate').value,excludeShorts:$('excludeShorts').checked}));
+$('reload').onclick=()=>if(window.YT_INITIAL_MODE){$('mode').value=window.YT_INITIAL_MODE;$('mode').dispatchEvent(new Event('change'));}
+action(()=>call('toolkitStatus'));
+$('run').onclick=async()=>{auto=true;controls();while(auto&&job?.id&&!terminal(job.state)){await action(()=>call('toolkitRun',job.id));if(job.state==='PAUSED')auto=false;}auto=false;controls();};
+$('pause').onclick=()=>{auto=false;$('message').textContent='Pausing after the current batch finishes.';controls();};
+$('cancel').onclick=()=>action(()=>call('toolkitCancel',job.id));
+$('retry').onclick=()=>action(()=>call('toolkitRetry',job.id,false));
+$('refresh').onclick=()=>action(()=>call('toolkitRetry',job.id,true));
+if(window.YT_INITIAL_MODE){$('mode').value=window.YT_INITIAL_MODE;$('mode').dispatchEvent(new Event('change'));}
+action(()=>call('toolkitStatus'));
+</script></body></html>
